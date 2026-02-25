@@ -10,10 +10,10 @@ jobs:
           TS_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
         run: |
           if [ -z "$TS_KEY" ]; then
-            echo "❌ ERROR: TAILSCALE_AUTH_KEY is still not found!"
+            echo "❌ ERROR: TAILSCALE_AUTH_KEY is missing! Check your spelling."
             exit 1
           else
-            echo "✅ Tailscale Key found! Let's go."
+            echo "✅ Tailscale Key found!"
           fi
 
       - name: Fix KVM Permissions
@@ -28,8 +28,8 @@ jobs:
 
       - name: Download Tiny 10
         run: |
-          echo "Downloading from a live link..."
-          # Updated link to avoid the 404 you saw earlier
+          echo "Downloading... this might take 4 minutes."
+          # Using a direct download link for the 23H1 x64 build
           curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
 
       - name: Connect to Tailscale
@@ -40,14 +40,14 @@ jobs:
       - name: Boot VM
         run: |
           qemu-img create -f qcow2 tiny10_disk.qcow2 20G
+          echo "Starting Windows... Use your iMICE in VNC!"
+          # Added -drive file=tiny10.iso to make sure it finds the disk
           sudo qemu-system-x86_64 \
             -m 4G \
             -smp 2 \
             -cpu host \
             -enable-kvm \
-            -boot d \
-            -cdrom tiny10.iso \
-            -hda tiny10_disk.qcow2 \
+            -drive file=tiny10.iso,media=cdrom \
+            -drive file=tiny10_disk.qcow2,if=virtio \
             -vnc :0 \
             -nographic
-
