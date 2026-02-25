@@ -10,16 +10,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qemu-kvm qemu-system-x86 ovmf
 
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
       - name: Download Tiny 10
         run: |
-          echo "Downloading from Internet Archive..."
-          # This is the 23H1 x64 build
           curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
 
-      - name: Boot VM with KVM
-        run: |
+      - name: Boot VM        run: |
           qemu-img create -f qcow2 tiny10_disk.qcow2 20G
-          # Using KVM acceleration for speed
+          # Note the tailscale IP in your logs once this starts!
           sudo qemu-system-x86_64 \
             -m 4G \
             -smp 2 \
@@ -30,4 +32,3 @@ jobs:
             -hda tiny10_disk.qcow2 \
             -vnc :0 \
             -nographic
-
