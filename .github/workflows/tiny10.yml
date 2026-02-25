@@ -1,5 +1,5 @@
 name: Tiny 10 Smart Boot
-on: workflow_dispatch
+on: workflow_dispatch  # This adds the "Run workflow" button!
 
 jobs:
   run-vm:
@@ -10,16 +10,9 @@ jobs:
           TS_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
         run: |
           if [ -z "$TS_KEY" ]; then
-            echo "❌ ERROR: TAILSCALE_AUTH_KEY is missing! Check your spelling."
+            echo "❌ ERROR: TAILSCALE_AUTH_KEY is missing!"
             exit 1
-          else
-            echo "✅ Tailscale Key found!"
           fi
-
-      - name: Fix KVM Permissions
-        run: |
-          sudo chmod 666 /dev/kvm
-          sudo adduser $USER kvm
 
       - name: Install QEMU
         run: |
@@ -28,9 +21,9 @@ jobs:
 
       - name: Download Tiny 10
         run: |
-          echo "Downloading... this will take about 4 minutes."
-          # This is the verified direct download link for 23H1 x64
-          curl -L -o tiny10.iso "https://archive.org/download/tiny-10_202301/tiny10%2023h1%20x64.iso"
+          echo "Downloading... please wait about 5 minutes."
+          # Verified live link for Tiny 10 23H1 x64
+          curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
 
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
@@ -40,13 +33,14 @@ jobs:
       - name: Boot VM
         run: |
           qemu-img create -f qcow2 tiny10_disk.qcow2 20G
-          echo "Starting Windows... Use your iMICE in VNC!"
-          # Added explicit drive commands to prevent "No bootable device" error
+          sudo chmod 666 /dev/kvm
+          # -boot d forces the CD-ROM to be the first boot device
           sudo qemu-system-x86_64 \
             -m 4G \
             -smp 2 \
             -cpu host \
             -enable-kvm \
+            -boot d \
             -drive file=tiny10.iso,media=cdrom \
             -drive file=tiny10_disk.qcow2,if=virtio \
             -vnc :0 \
