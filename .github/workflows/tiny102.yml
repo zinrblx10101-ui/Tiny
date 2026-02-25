@@ -1,0 +1,16 @@
+      - name: Boot VM
+        run: |
+          qemu-img create -f qcow2 tiny10_disk.qcow2 20G
+          sudo chmod 666 /dev/kvm
+          # -boot d forces the computer to boot from the CD-ROM
+          sudo qemu-system-x86_64 \
+            -m 4G \
+            -smp 2 \
+            -cpu host \
+            -enable-kvm \
+            -boot d \
+            -drive file=tiny10.iso,media=cdrom \
+            -drive file=tiny10_disk.qcow2,if=virtio \
+            -vnc :0 \
+            -nographic
+
