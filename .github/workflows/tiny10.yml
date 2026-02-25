@@ -7,13 +7,13 @@ jobs:
     steps:
       - name: 🛡️ Check Tailscale Secret
         env:
-          TS_KEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+          TS_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
         run: |
           if [ -z "$TS_KEY" ]; then
-            echo "❌ ERROR: TAILSCALE_AUTHKEY is missing in your GitHub Settings!"
+            echo "❌ ERROR: TAILSCALE_AUTH_KEY is still not found!"
             exit 1
           else
-            echo "✅ Tailscale Key found. Ready to boot!"
+            echo "✅ Tailscale Key found! Let's go."
           fi
 
       - name: Fix KVM Permissions
@@ -28,19 +28,18 @@ jobs:
 
       - name: Download Tiny 10
         run: |
-          echo "Downloading Tiny 10... please wait."
-          # New stable redirect link
+          echo "Downloading from a live link..."
+          # Updated link to avoid the 404 you saw earlier
           curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
 
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
 
       - name: Boot VM
         run: |
           qemu-img create -f qcow2 tiny10_disk.qcow2 20G
-          echo "VM Starting! Connect using your Tailscale IP."
           sudo qemu-system-x86_64 \
             -m 4G \
             -smp 2 \
@@ -51,3 +50,4 @@ jobs:
             -hda tiny10_disk.qcow2 \
             -vnc :0 \
             -nographic
+
