@@ -5,23 +5,26 @@ jobs:
   run-vm:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Virtualization
+      - name: Fix KVM Permissions
+        run: |
+          sudo chmod 666 /dev/kvm
+          sudo adduser $USER kvm
+
+      - name: Install QEMU
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-kvm qemu-system-x86 ovmf
 
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-
       - name: Download Tiny 10
         run: |
-          curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
+          echo "Downloading from a stable mirror..."
+          # This link uses the 'download' redirect which is more stable
+          curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%2023h1%20x64.iso"
 
-      - name: Boot VM        run: |
+      - name: Boot Tiny 10
+        run: |
           qemu-img create -f qcow2 tiny10_disk.qcow2 20G
-          # Note the tailscale IP in your logs once this starts!
+          echo "Starting Windows... KVM is active!"
           sudo qemu-system-x86_64 \
             -m 4G \
             -smp 2 \
