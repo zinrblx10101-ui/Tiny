@@ -1,0 +1,33 @@
+name: Tiny 10 Fast Boot
+on: workflow_dispatch
+
+jobs:
+  run-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Virtualization
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-kvm qemu-system-x86 ovmf
+
+      - name: Download Tiny 10
+        run: |
+          echo "Downloading from Internet Archive..."
+          # This is the 23H1 x64 build
+          curl -L -o tiny10.iso "https://archive.org/download/tiny-10-NTDEV/tiny10%20x64%2023h1.iso"
+
+      - name: Boot VM with KVM
+        run: |
+          qemu-img create -f qcow2 tiny10_disk.qcow2 20G
+          # Using KVM acceleration for speed
+          sudo qemu-system-x86_64 \
+            -m 4G \
+            -smp 2 \
+            -cpu host \
+            -enable-kvm \
+            -boot d \
+            -cdrom tiny10.iso \
+            -hda tiny10_disk.qcow2 \
+            -vnc :0 \
+            -nographic
+
